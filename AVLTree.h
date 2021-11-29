@@ -45,6 +45,7 @@ class AVLTree
 
 public:
     AVLTree();
+	AVLTree(AVLNode<Data>* r, int size);
     ~AVLTree();
 	
 	//if not found, return NULL
@@ -334,6 +335,14 @@ AVLTree<Data>::AVLTree()
 {
 	root = NULL;
 	nodes_count = 0;
+}
+
+template<typename Data>
+inline AVLTree<Data>::AVLTree(AVLNode<Data>* r, int size)
+{
+	this->root = r;
+	this->nodes_count = size;
+	
 }
 
 template<typename Data>
