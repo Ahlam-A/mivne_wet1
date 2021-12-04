@@ -180,16 +180,18 @@ StatusType PlayersManager::ReplaceGroup(int GroupID, int ReplacementID) {
         groupTree->deleteNode(GroupID);
         return SUCCESS;
     }
-    int new_highest_level_player_id = group1->highest_player->player->getId();
-    int highest_level_id2;
+    int highest_level_player_id = group1->highest_player->player->getId();
+    int highest_level_id2, highest_level1, highest_level2;
+    highest_level1 = group1->highest_player->player->getLevel();
     if(!group2->getSize()){
         GroupPointer new_group_ptr = GroupPointer();
         new_group_ptr.group = group2;
         NonEmptyGroups->insertNode(&new_group_ptr, nullptr);
     }else{
         highest_level_id2 = group2->highest_player->player->getId();
-        if(group1->highest_player->player->getLevel() < group2->highest_player->player->getLevel()){
-            new_highest_level_player_id = highest_level_id2;
+        highest_level2 = group2->highest_player->player->getLevel();
+        if(highest_level1 < highest_level2 || (highest_level1 == highest_level2 && highest_level_player_id > highest_level_id2)){
+            highest_level_player_id = highest_level_id2;
         }
     }
     AVLTree<PlayerPointer>* tmp = mergeTrees(group1->groupPlayers, group2->groupPlayers);
@@ -200,10 +202,26 @@ StatusType PlayersManager::ReplaceGroup(int GroupID, int ReplacementID) {
     groupTree->deleteNode(GroupID);
     NonEmptyGroups->deleteNode(GroupID);
     PlayerPointer new_highest_level_player = PlayerPointer();
-    new_highest_level_player.player = playersById->findData(new_highest_level_player_id);
+    new_highest_level_player.player = playersById->findData(highest_level_player_id);
     return SUCCESS;
 }
 
 StatusType PlayersManager::GetHighestLevel(int GroupID, int *PlayerID) {
-
+    if(GroupID == 0 || !PlayerID){
+        return INVALID_INPUT;
+    }
+    if(GroupID < 0){
+        *PlayerID = playersByLevel->getHighest()->getData()->player->getId();
+        return SUCCESS;
+    }
+    Group* group = groupTree->findData(GroupID);
+    if(!group){
+        return FAILURE;
+    }
+    if(!group->getSize()){
+        *PlayerID = -1;
+        return SUCCESS;
+    }
+    *PlayerID = group->highest_player->player->getId();
+    return SUCCESS;
 }
