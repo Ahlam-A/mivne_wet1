@@ -63,7 +63,7 @@ static int mergeArrays(PlayerPointer** arr1, int size1, PlayerPointer** arr2, in
 	return i;
 }
 
-static AVLTree<PlayerPointer>* mergeLabelTrees(AVLTree<PlayerPointer>* tree1, AVLTree<PlayerPointer>* tree2)
+static AVLTree<PlayerPointer>* mergeTrees(AVLTree<PlayerPointer>* tree1, AVLTree<PlayerPointer>* tree2)
 {
 	int size1 = tree1->getSize();
 	int size2 = tree2->getSize();
@@ -159,7 +159,51 @@ StatusType PlayersManager::AddPlayer(int PlayerID, int GroupID, int Level) {
         GroupPointer new_nonEmptyGroup = GroupPointer();
         new_nonEmptyGroup.group = group;
         NonEmptyGroups->insertNode(&new_nonEmptyGroup, nullptr);
+        group->highest_player = &new_player_ptr;
+    } else if(group->highest_player->player->getLevel() < Level) {
+        group->highest_player = &new_player_ptr;
     }
     group->increaseSize();
     return SUCCESS;
+}
+
+StatusType PlayersManager::ReplaceGroup(int GroupID, int ReplacementID) {
+    if(GroupID <= 0 || ReplacementID <= 0 || GroupID == ReplacementID){
+        return INVALID_INPUT;
+    }
+    Group* group1 = groupTree->findData(GroupID);
+    Group* group2 = groupTree->findData(ReplacementID);
+    if(!group1 || !group2){
+        return FAILURE;
+    }
+    if(!group1->getSize()){
+        groupTree->deleteNode(GroupID);
+        return SUCCESS;
+    }
+    int new_highest_level_player_id = group1->highest_player->player->getId();
+    int highest_level_id2;
+    if(!group2->getSize()){
+        GroupPointer new_group_ptr = GroupPointer();
+        new_group_ptr.group = group2;
+        NonEmptyGroups->insertNode(&new_group_ptr, nullptr);
+    }else{
+        highest_level_id2 = group2->highest_player->player->getId();
+        if(group1->highest_player->player->getLevel() < group2->highest_player->player->getLevel()){
+            new_highest_level_player_id = highest_level_id2;
+        }
+    }
+    AVLTree<PlayerPointer>* tmp = mergeTrees(group1->groupPlayers, group2->groupPlayers);
+    delete group1->groupPlayers;
+    delete group2->groupPlayers ;
+    group2->groupPlayers = tmp;
+    group2->setSize(group1->getSize() + group2->getSize());
+    groupTree->deleteNode(GroupID);
+    NonEmptyGroups->deleteNode(GroupID);
+    PlayerPointer new_highest_level_player = PlayerPointer();
+    new_highest_level_player.player = playersById->findData(new_highest_level_player_id);
+    return SUCCESS;
+}
+
+StatusType PlayersManager::GetHighestLevel(int GroupID, int *PlayerID) {
+
 }
