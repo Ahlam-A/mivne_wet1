@@ -112,14 +112,54 @@ PlayersManager::PlayersManager()
 {
 	groupTree = new AVLTree<Group>();
 	NonEmptyGroups = new AVLTree<GroupPointer>();
-	playerTree = new AVLTree<Player>();
-	playerLevels = new AVLTree<PlayerPointer>();
+    playersById = new AVLTree<Player>();
+    playersByLevel = new AVLTree<PlayerPointer>();
 }
 
 PlayersManager::~PlayersManager()
 {
 	delete groupTree;
 	delete NonEmptyGroups;
-	delete playerTree;
-	delete playerLevels;
+	delete playersById;
+	delete playersByLevel;
+}
+
+StatusType PlayersManager::AddPlayer(int PlayerID, int GroupID, int Level) {
+    if(PlayerID <= 0 || GroupID <= 0 || Level < 0){
+        return INVALID_INPUT;
+    }
+    Group* group = groupTree->findData(GroupID);
+    if(!group || playersById->findData(PlayerID)){
+        return FAILURE;
+    }
+    AVLNode<Player>* new_player_node = nullptr;
+    Player new_player(PlayerID, GroupID, Level);
+    TreeResult res1 = playersById->insertNode(&new_player, new_player_node);
+    if(res1 == TreeResult::NODE_ALREADY_EXISTS){
+        return FAILURE;
+    }
+    if(res1 == TreeResult::OUT_OF_MEMORY){
+        return ALLOCATION_ERROR;
+    }
+    AVLNode<PlayerPointer>* new_player_node_ptr1 = nullptr;
+    PlayerPointer new_player_ptr = PlayerPointer();
+    new_player_ptr.player = &new_player;
+    TreeResult res2 = playersByLevel->insertNode(&new_player_ptr, new_player_node_ptr1);
+    if(res2 == TreeResult::OUT_OF_MEMORY){
+        return ALLOCATION_ERROR;
+    }
+    new_player.player_level = new_player_node_ptr1;
+    AVLNode<PlayerPointer>* new_player_node_ptr2 = nullptr;
+    TreeResult res3 = group->groupPlayers->insertNode(&new_player_ptr, new_player_node_ptr2);
+    if(res3 == TreeResult::OUT_OF_MEMORY){
+        return ALLOCATION_ERROR;
+    }
+    new_player.group_player = new_player_node_ptr2;
+    if(!group->getSize()){
+        GroupPointer new_nonEmptyGroup = GroupPointer();
+        new_nonEmptyGroup.group = group;
+        NonEmptyGroups->insertNode(&new_nonEmptyGroup, nullptr);
+    }
+    group->increaseSize();
+    return SUCCESS;
 }
