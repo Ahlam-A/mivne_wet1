@@ -65,11 +65,11 @@ class Group
 {
 	int id;
 	int size;
-	PlayerPointer* highest_player;
 
 	friend class GroupPointer;
 
 public:
+    PlayerPointer* highest_player;
     AVLTree<PlayerPointer>* groupPlayers; //sorted by level first, id second
 
 	Group() = default;
@@ -94,6 +94,7 @@ public:
 	int getGroupId() const{ return id; }
 	int getSize() const{ return size; }
 	void increaseSize(){ size++; }
+	void setSize(int new_size){ size = new_size; }
 };
 
 
