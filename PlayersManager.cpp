@@ -225,3 +225,22 @@ StatusType PlayersManager::GetHighestLevel(int GroupID, int *PlayerID) {
     *PlayerID = group->highest_player->player->getId();
     return SUCCESS;
 }
+
+StatusType PlayersManager::GetGroupsHighestLevel(int numOfGroups,
+                                                 int **Players) {
+    if(numOfGroups < 1 || !Players){
+        return INVALID_INPUT;
+    }
+    if(numOfGroups > NonEmptyGroups->getSize()){
+        return FAILURE;
+    }
+    GroupPointer** arr = new GroupPointer*[numOfGroups];
+    if(!arr){
+        return ALLOCATION_ERROR;
+    }
+    NonEmptyGroups->inorder(NonEmptyGroups->getRoot(), arr, numOfGroups);
+    for (int i = 0; i < numOfGroups; ++i) {
+        *Players[i] = arr[i]->group->highest_player->player->getId();
+    }
+    return SUCCESS;
+}
