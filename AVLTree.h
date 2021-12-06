@@ -483,10 +483,10 @@ int AVLTree<Data>::inorder(AVLNode<Data>* p, Data** arr, int numOfNodes, int i)
 {
 	if (p == NULL || !numOfNodes) return i;
 
-	i = AVLTree<Data>::inorder(p->getLChild(), arr, i, --numOfNodes);
-	
+	i = AVLTree<Data>::inorder(p->getLChild(), arr, numOfNodes, i);
+    --numOfNodes;
 	arr[i++] = (p->getData());
-	i = AVLTree<Data>::inorder(p->getRChild(), arr, i, --numOfNodes);
+	i = AVLTree<Data>::inorder(p->getRChild(), arr, numOfNodes, i);
 
 	return i;
 }
