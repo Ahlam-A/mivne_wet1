@@ -74,7 +74,6 @@ static AVLTree<PlayerPointer>* mergeTrees(AVLTree<PlayerPointer>* tree1, AVLTree
 		PlayerPointer** arr2 = tree2->orderedArray();
 		PlayerPointer** mergedArr = new PlayerPointer*[size1 + size2];
 		int mergeSize = mergeArrays(arr1, size1, arr2, size2, mergedArr);
-
 		AVLTree<PlayerPointer>* mergedTree = arrayToTree(mergedArr, mergeSize);
 
 		delete[] arr1;
@@ -195,8 +194,14 @@ StatusType PlayersManager::ReplaceGroup(int GroupID, int ReplacementID) {
         }
     }
     AVLTree<PlayerPointer>* tmp = mergeTrees(group1->groupPlayers, group2->groupPlayers);
+    PlayerPointer** mergedArr = new PlayerPointer*[group1->getSize() + group2->getSize()];
+    tmp->inorder(tmp->getRoot(), mergedArr, group1->getSize() + group2->getSize());
+    for (int i = 0; i < group1->getSize() + group2->getSize(); ++i) {
+        mergedArr[i]->player->setGroupId(ReplacementID);
+    }
+    delete[] mergedArr;
     delete group1->groupPlayers;
-    delete group2->groupPlayers ;
+    delete group2->groupPlayers;
     group2->groupPlayers = tmp;
     group2->setSize(group1->getSize() + group2->getSize());
     groupTree->deleteNode(GroupID);

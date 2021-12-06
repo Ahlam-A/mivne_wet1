@@ -34,6 +34,7 @@ public:
 
 	int getId() const{ return id; }
 	int getLevel() const{ return level; }
+	void setGroupId(int groupId){ group_id = groupId; }
 };
 
 class PlayerPointer{
