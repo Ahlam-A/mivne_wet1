@@ -30,7 +30,6 @@ class AVLTree
     AVLNode<Data>* root;
     int nodes_count;
 
-	/* NEED TO ADD SUPPORT FOR HIGHEST NODE */
 	AVLNode<Data>* highest;
 
     //if found, return node, else, return father node
@@ -55,12 +54,9 @@ public:
     const TreeResult deleteNode(int id);
 	const TreeResult deleteByPointer(AVLNode<Data>* node);
     const int getSize();
-    AVLNode<Data>* getHighest(){
-        return highest;
-    }
-    AVLNode<Data>* getRoot(){
-        return root;
-    }
+	void updateHighest();
+    AVLNode<Data>* getHighest() { return highest; }
+    AVLNode<Data>* getRoot() { return root; }
 
 	int inorder(AVLNode<Data>* p, Data** arr, int numOfNodes, int i = 0);
 	Data** orderedArray();
@@ -313,24 +309,28 @@ template<typename Data>
 static void delete_leaf_or_onechild_node(AVLNode<Data>* node)
 {
 	auto* parent = node->getParent();
+
 	switch (node->getType())
 	{
 	case LEAF:
 		parent->removeChild(node);
 		delete node;
 		break;
+
 	case HAS_LEFT_CHILD:
 		if (parent->removeChild(node) == true) //node is parent's left child
 			parent->setLChild(node->getLChild());
 		else parent->setRChild(node->getLChild());
 		delete node;
 		break;
+
 	case HAS_RIGHT_CHILD:
 		if (parent->removeChild(node) == true) //node is father's left child
 			parent->setLChild(node->getRChild());
 		else parent->setRChild(node->getRChild());
 		delete node;
 		break;
+
 	default:
 		break;
 	}
@@ -372,6 +372,7 @@ const TreeResult AVLTree<Data>::insertNode(Data* data, AVLNode<Data>* inserted)
         if (root == NULL) {
             root = new AVLNode<Data>(data);
             this->nodes_count++;
+			this->highest = root;
 			inserted = root;
             return TreeResult::SUCCESS;
         }
@@ -391,6 +392,9 @@ const TreeResult AVLTree<Data>::insertNode(Data* data, AVLNode<Data>* inserted)
             node->setRChild(newNode);
             if (balanceTree(newNode) != TreeResult::SUCCESS)
                 throw AVLTree_Exception("error");
+
+			if (*highest < data)
+				this->highest = newNode;
 
 			inserted = newNode;
             return TreeResult::SUCCESS;
@@ -469,6 +473,7 @@ inline const TreeResult AVLTree<Data>::deleteByPointer(AVLNode<Data>* node)
 
 	balanceTree(parent);
 	this->nodes_count--;
+	updateHighest();
 	return TreeResult::SUCCESS;
 }
 
@@ -476,6 +481,22 @@ template<typename Data>
 const int AVLTree<Data>::getSize()
 {
 	return this->nodes_count;
+}
+
+template<typename Data>
+inline void AVLTree<Data>::updateHighest()
+{
+	if (this->nodes_count == 0) {
+		this->highest = NULL;
+		return;
+	}
+	
+	AVLNode<Data>* temp = this->root;
+	while (temp->getRChild() != NULL) {
+		temp = temp->getRChild;
+	}
+
+	this->highest = temp;
 }
 
 template<typename Data>
