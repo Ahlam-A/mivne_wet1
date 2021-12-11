@@ -5,12 +5,13 @@
 #include "AVLTree.h"
 
 class PlayerPointer;
+class Group;
 
 class Player
 {
 	int id;
-	int group_id;
 	int level;
+	Group* group;
 
 	friend class PlayerPointer;
 
@@ -19,8 +20,8 @@ public:
 	AVLNode<PlayerPointer>* group_player; // pointer to Player's node in its group's groupPlayers tree
 
 	Player() = default;
-	Player(int playerId, int groupId, int level) :
-		id(playerId), group_id(groupId), level(level) {}
+	Player(int playerId, int level, Group* group) :
+		id(playerId), level(level), group(group) {}
 	~Player() = default;
 
 	Player& operator=(const Player&);
@@ -34,7 +35,8 @@ public:
 
 	int getId() const{ return id; }
 	int getLevel() const{ return level; }
-	void setGroupId(int groupId){ group_id = groupId; }
+	Group* getGroup() const { return group; }
+	void updateGroup(Group* g) { group == g; }
 };
 
 class PlayerPointer{
@@ -43,13 +45,13 @@ public:
 
 	PlayerPointer& operator=(const PlayerPointer& pp); 
 	
-	//const bool operator<(int pp) { return player->level < pp; }
-	//const bool operator>(int pp);
+	bool operator<(int level) const { return player->level < level; }
+	bool operator>(int level) const { return player->level > level; }
+	bool operator==(int id) const { return player->id == id; }
+
 	bool operator==(const PlayerPointer& pp) const{
 	    return player->id == pp.player->id;
 	}
-
-
 	bool operator<(const PlayerPointer& pp) const{
 		if (player->level == pp.player->level)
 			return player->id > pp.player->id;
@@ -72,6 +74,7 @@ class Group
 public:
     PlayerPointer* highest_player;
     AVLTree<PlayerPointer>* groupPlayers; //sorted by level first, id second
+	AVLNode<GroupPointer>* groupPointer;
 
 	Group() = default;
 	Group(int id) : id(id)
