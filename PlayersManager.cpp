@@ -306,6 +306,51 @@ StatusType PlayersManager::GetHighestLevel(int GroupID, int *PlayerID) {
     return SUCCESS;
 }
 
+static int* getPlayersByLevel(int numOfPlayers, AVLTree<PlayerPointer>* playersTree)
+{
+    int* players = new int[numOfPlayers];
+
+    PlayerPointer** player_pointers = playersTree->orderedArray();
+
+    int i = 0;
+    while (i < numOfPlayers) {
+        players[i] = player_pointers[i]->player->getId();
+        i++;
+    }
+    delete[] player_pointers;
+
+    return players;
+}
+
+StatusType PlayersManager::GetAllPlayersByLevel(int GroupID, int** Players, int* numOfPlayers)
+{
+    if (GroupID == 0 || !Players || !numOfPlayers)
+        return INVALID_INPUT;
+    
+    try 
+    {
+        if (GroupID > 0) 
+        {
+            Group* group = groupTree->findData(GroupID);
+            if (group == NULL) return FAILURE;
+
+            *numOfPlayers = group->groupPlayers->getSize();
+            *Players = getPlayersByLevel(*numOfPlayers, group->groupPlayers);
+        }
+
+        else if (GroupID < 0) 
+        {
+            *numOfPlayers = playersByLevel->getSize();
+            *Players = getPlayersByLevel(*numOfPlayers, playersByLevel);
+        }
+    }
+    catch (bad_alloc&) {
+        return ALLOCATION_ERROR;
+    }
+
+    return SUCCESS;
+}
+
 StatusType PlayersManager::GetGroupsHighestLevel(int numOfGroups, int **Players) 
 {
     if(numOfGroups < 1 || !Players){
