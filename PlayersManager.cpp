@@ -312,8 +312,8 @@ static int* getPlayersByLevel(int numOfPlayers, AVLTree<PlayerPointer>* playersT
 
     PlayerPointer** player_pointers = playersTree->orderedArray();
 
-    int i = 0;
-    while (i < numOfPlayers) {
+    int i = numOfPlayers - 1;
+    while (i >= 0) {
         players[i] = player_pointers[i]->player->getId();
         i++;
     }

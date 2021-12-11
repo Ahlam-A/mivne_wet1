@@ -145,6 +145,7 @@
     <ClInclude Include="PlayersManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="library1.cpp" />
     <ClCompile Include="main1.cpp" />
     <ClCompile Include="PlayersManager.cpp" />
   </ItemGroup>

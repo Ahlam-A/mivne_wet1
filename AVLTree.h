@@ -341,6 +341,7 @@ AVLTree<Data>::AVLTree()
 {
 	root = NULL;
 	nodes_count = 0;
+	highest = NULL;
 }
 
 template<typename Data>
@@ -411,7 +412,7 @@ const TreeResult AVLTree<Data>::insertNode(Data* data, AVLNode<Data>* inserted)
         }
         return TreeResult::FAILURE;
     }
-   catch(const bad_alloc& e) {
+   catch(const bad_alloc&) {
         return TreeResult::OUT_OF_MEMORY;
     }
 }
@@ -493,7 +494,7 @@ inline void AVLTree<Data>::updateHighest()
 	
 	AVLNode<Data>* temp = this->root;
 	while (temp->getRChild() != NULL) {
-		temp = temp->getRChild;
+		temp = temp->getRChild();
 	}
 
 	this->highest = temp;
