@@ -107,6 +107,33 @@ static AVLTree<PlayerPointer>* mergeTrees(AVLTree<PlayerPointer>* tree1, AVLTree
 
 /* ------------------------------------------ PlayersManager Functions ------------------------------------------ */
 
+
+Group& Group::operator=(const Group& g)
+{
+    this->id = g.getGroupId();
+    this->size = g.getSize();
+    this->groupPointer = g.groupPointer;
+
+    if (this->groupPlayers) {
+        delete groupPlayers;
+        this->groupPlayers = nullptr;
+    }
+
+    if (g.groupPlayers) {
+        PlayerPointer** playerArr = g.groupPlayers->orderedArray();
+        this->groupPlayers = arrayToTree(playerArr, g.groupPlayers->getSize());
+        delete[] playerArr;
+        groupPlayers->updateHighest();
+        this->highest_player = groupPlayers->getHighest();
+    }
+    else {
+        this->groupPlayers = new AVLTree<PlayerPointer>();
+        this->highest_player = nullptr;
+    }
+    return *this;
+}
+
+
 PlayersManager::PlayersManager()
 {
 	groupTree = new AVLTree<Group>();
@@ -129,7 +156,6 @@ StatusType PlayersManager::AddGroup(int GroupID)
     
     Group newGroup = Group(GroupID);
     TreeResult insertResult = groupTree->insertNode(&newGroup, nullptr);
-    
     if (insertResult == TreeResult::NODE_ALREADY_EXISTS)
         return FAILURE;
     if (insertResult == TreeResult::OUT_OF_MEMORY)
@@ -143,12 +169,10 @@ static StatusType addPlayerToGroup(Player* new_player, Group* group, AVLTree<Gro
     PlayerPointer new_player_ptr = PlayerPointer();
     new_player_ptr.player = new_player;
     
-    AVLNode<PlayerPointer>* new_player_node_ptr = nullptr;
-    TreeResult res1 = group->groupPlayers->insertNode(&new_player_ptr, new_player_node_ptr);
+    TreeResult res1 = group->groupPlayers->insertNode(&new_player_ptr, new_player->group_player);
     if (res1 == TreeResult::OUT_OF_MEMORY) {
         return ALLOCATION_ERROR;
     }
-    new_player->group_player = new_player_node_ptr;
     if (group->getSize() == 0) {
         GroupPointer new_nonEmptyGroup = GroupPointer();
         new_nonEmptyGroup.group = group;
@@ -172,28 +196,31 @@ StatusType PlayersManager::AddPlayer(int PlayerID, int GroupID, int Level) {
         return INVALID_INPUT;
     }
     Group* group = groupTree->findData(GroupID);
-    if(!group){
-        return FAILURE;
-    }
-    AVLNode<Player>* new_player_node = nullptr;
-    Player new_player(PlayerID, Level, group);
-    TreeResult res1 = playersById->insertNode(&new_player, new_player_node);
-    if(res1 == TreeResult::NODE_ALREADY_EXISTS){
-        return FAILURE;
-    }
-    if(res1 == TreeResult::OUT_OF_MEMORY){
+    
+    if(!group) return FAILURE;
+    if (playersById->findData(PlayerID)) return FAILURE;
+
+    Player new_player = Player(PlayerID, Level, group);
+
+    PlayerPointer player_ptr = PlayerPointer();
+    player_ptr.player = &new_player;
+
+    AVLNode<PlayerPointer>* player_ptr_node = nullptr;
+    TreeResult res1 = playersByLevel->insertNode(&player_ptr, player_ptr_node);
+    if (res1 == TreeResult::OUT_OF_MEMORY) {
         return ALLOCATION_ERROR;
     }
-    AVLNode<PlayerPointer>* new_player_node_ptr1 = nullptr;
-    PlayerPointer new_player_ptr = PlayerPointer();
-    new_player_ptr.player = &new_player;
-    TreeResult res2 = playersByLevel->insertNode(&new_player_ptr, new_player_node_ptr1);
+    new_player.player_level = player_ptr_node;
+
+    if (addPlayerToGroup(&new_player, group, NonEmptyGroups) == ALLOCATION_ERROR)
+        return ALLOCATION_ERROR;
+
+    TreeResult res2 = playersById->insertNode(&new_player, nullptr);
     if(res2 == TreeResult::OUT_OF_MEMORY){
         return ALLOCATION_ERROR;
     }
-    new_player_node->getData()->player_level = new_player_node_ptr1;
-    
-    return addPlayerToGroup(&new_player, group, NonEmptyGroups);
+
+    return SUCCESS;
 }
 
 StatusType PlayersManager::RemovePlayer(int PlayerID)

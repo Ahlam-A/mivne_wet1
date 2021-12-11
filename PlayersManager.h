@@ -6,6 +6,7 @@
 
 class PlayerPointer;
 class Group;
+class GroupPointer;
 
 class Player
 {
@@ -21,10 +22,20 @@ public:
 
 	Player() = default;
 	Player(int playerId, int level, Group* group) :
-		id(playerId), level(level), group(group) {}
+		id(playerId), level(level), group(group) {
+		player_level = nullptr;
+		group_player = nullptr;
+	}
 	~Player() = default;
 
-	Player& operator=(const Player& p) = default;
+	Player& operator=(const Player& p) {
+		this->id = p.getId();
+		this->level = p.getLevel();
+		this->group = p.getGroup();
+		this->player_level = p.player_level;
+		this->group_player = p.group_player;
+		return *this;
+	}
 
 	bool operator<(int id) const{ return this->id < id; }
 	bool operator<(const Player& p) const{ return this->id < p.id; }
@@ -43,7 +54,10 @@ class PlayerPointer{
 public:
     Player* player; // pointer to Player data in playerTree
 
-	PlayerPointer& operator=(const PlayerPointer& pp) = default;
+	PlayerPointer& operator=(const PlayerPointer& pp) {
+		this->player = pp.player;
+		return *this;
+	}
 	
 	bool operator<(int level) const { return player->level < level; }
 	bool operator>(int level) const { return player->level > level; }
@@ -77,16 +91,21 @@ public:
 	AVLNode<GroupPointer>* groupPointer;
 
 	Group() = default;
-	explicit Group(int id) : id(id)
+	Group(int id) : id(id)
 	{
 		size = 0;
 		highest_player = nullptr;
 		groupPlayers = new AVLTree<PlayerPointer>();
+		groupPointer = nullptr;
 	}
 
-	~Group() { delete groupPlayers; }
+	~Group() { 
+		if (this->groupPlayers)
+			delete groupPlayers;
+		groupPlayers = NULL;
+	}
 
-	Group& operator=(const Group& g) = default;
+	Group& operator=(const Group& g);
 
 	bool operator<(int id) const{ return this->id < id; }
 	bool operator<(const Group& g) const{ return this->id < g.id; }
@@ -107,7 +126,10 @@ class GroupPointer
 public:
 	Group* group;
 
-	GroupPointer& operator=(const GroupPointer& gp) = default;
+	GroupPointer& operator=(const GroupPointer& gp) {
+		this->group = gp.group;
+		return *this;
+	}
 
 	bool operator<(int id) const{ return group->id < id; }
 	bool operator<(const GroupPointer& gp) const{ return group->id < gp.group->id; }
