@@ -50,7 +50,7 @@ public:
 	//if not found, return NULL
     Data* findData(const int identifier);
 
-	const TreeResult insertNode(Data* data, AVLNode<Data>* inserted);
+    AVLNode<Data>* insertNode(Data* data, TreeResult* res);
     const TreeResult deleteNode(int id);
 	const TreeResult deleteByPointer(AVLNode<Data>* node);
     const int getSize();
@@ -366,7 +366,7 @@ Data* AVLTree<Data>::findData(const int identifier)
 
 	return NULL;
 }
-
+/*
 template<typename Data>
 const TreeResult AVLTree<Data>::insertNode(Data* data, AVLNode<Data>* inserted)
 {
@@ -417,6 +417,60 @@ const TreeResult AVLTree<Data>::insertNode(Data* data, AVLNode<Data>* inserted)
     }
    catch(const bad_alloc&) {
         return TreeResult::OUT_OF_MEMORY;
+    }
+}*/
+
+template<typename Data>
+ AVLNode<Data>* AVLTree<Data>::insertNode(Data* data, TreeResult* res) {
+    try {
+        if (data == NULL) {
+            *res = TreeResult::NULL_ARGUMENT;\
+            return NULL;
+        }
+
+        if (root == NULL) {
+            root = new AVLNode<Data>(data);
+            this->nodes_count++;
+            this->highest = root;
+            *res =  TreeResult::SUCCESS;
+            return root;
+        }
+
+        bool found = false;
+        AVLNode<Data> *node = findNode(data, found);
+
+        if (found) {
+            *res = TreeResult::NODE_ALREADY_EXISTS;
+            return node;
+        } else if (*node < data) {
+            AVLNode<Data> *newNode = new AVLNode<Data>(data);
+
+            this->nodes_count++;
+            node->setRChild(newNode);
+            if (balanceTree(newNode) != TreeResult::SUCCESS)
+                throw AVLTree_Exception("error");
+
+            if (*highest < data)
+                this->highest = newNode;
+
+            *res = TreeResult::SUCCESS;
+            return newNode;
+        } else if (*node > data) {
+            AVLNode<Data> *newNode = new AVLNode<Data>(data);
+            this->nodes_count++;
+            node->setLChild(newNode);
+            if (balanceTree(newNode) != TreeResult::SUCCESS)
+                throw AVLTree_Exception("error");
+
+            *res = TreeResult::SUCCESS;
+            return newNode;
+        }
+        *res = TreeResult::FAILURE;
+        return NULL;
+    }
+    catch (const bad_alloc &) {
+        *res = TreeResult::OUT_OF_MEMORY;
+        return NULL;
     }
 }
 
