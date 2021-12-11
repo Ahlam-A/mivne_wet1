@@ -55,7 +55,7 @@ public:
 	const TreeResult deleteByPointer(AVLNode<Data>* node);
     const int getSize();
 	void updateHighest();
-    AVLNode<Data>* getHighest() { return highest; }
+    Data* getHighest() { return highest->getData(); }
     AVLNode<Data>* getRoot() { return root; }
 
 	int inorder(AVLNode<Data>* p, Data** arr, int numOfNodes, int i = 0);
