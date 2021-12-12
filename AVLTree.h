@@ -50,7 +50,7 @@ public:
 	//if not found, return NULL
     Data* findData(const int identifier);
 
-	const TreeResult insertNode(Data* data, AVLNode<Data>* inserted);
+	const TreeResult insertNode(Data* data, AVLNode<Data>** inserted);
     const TreeResult deleteNode(int id);
 	const TreeResult deleteByPointer(AVLNode<Data>* node);
     const int getSize();
@@ -368,7 +368,7 @@ Data* AVLTree<Data>::findData(const int identifier)
 }
 
 template<typename Data>
-const TreeResult AVLTree<Data>::insertNode(Data* data, AVLNode<Data>* inserted)
+const TreeResult AVLTree<Data>::insertNode(Data* data, AVLNode<Data>** inserted)
 {
     try {
         if (data == NULL) return TreeResult::NULL_ARGUMENT;
@@ -377,7 +377,7 @@ const TreeResult AVLTree<Data>::insertNode(Data* data, AVLNode<Data>* inserted)
             root = new AVLNode<Data>(data);
             this->nodes_count++;
 			this->highest = root;
-			inserted = root;
+			if (inserted != nullptr) *inserted = root;
             return TreeResult::SUCCESS;
         }
 
@@ -385,7 +385,7 @@ const TreeResult AVLTree<Data>::insertNode(Data* data, AVLNode<Data>* inserted)
         AVLNode<Data>* node = findNode(data, found);
 
 		if (found) {
-			inserted = node;
+			if (inserted != nullptr) *inserted = node;
             return TreeResult::NODE_ALREADY_EXISTS;
 		}
 
@@ -400,7 +400,7 @@ const TreeResult AVLTree<Data>::insertNode(Data* data, AVLNode<Data>* inserted)
 			if (*highest < data)
 				this->highest = newNode;
 
-			inserted = newNode;
+			if (inserted != nullptr) *inserted = newNode;
             return TreeResult::SUCCESS;
         }
         else if (*node > data) {
@@ -410,7 +410,7 @@ const TreeResult AVLTree<Data>::insertNode(Data* data, AVLNode<Data>* inserted)
             if (balanceTree(newNode) != TreeResult::SUCCESS)
                 throw AVLTree_Exception("error");
 			
-			inserted = newNode;
+			if (inserted != nullptr) *inserted = newNode;
             return  TreeResult::SUCCESS;
         }
         return TreeResult::FAILURE;

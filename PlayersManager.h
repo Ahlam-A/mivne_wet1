@@ -26,7 +26,7 @@ public:
 		player_level = nullptr;
 		group_player = nullptr;
 	}
-	~Player() = default;
+	~Player() {}
 
 	Player& operator=(const Player& p) {
 		this->id = p.getId();
@@ -53,6 +53,7 @@ public:
 class PlayerPointer{
 public:
     Player* player; // pointer to Player data in playerTree
+	~PlayerPointer() {}
 
 	PlayerPointer& operator=(const PlayerPointer& pp) {
 		this->player = pp.player;
@@ -125,7 +126,7 @@ class GroupPointer
 {
 public:
 	Group* group;
-
+	~GroupPointer() {}
 	GroupPointer& operator=(const GroupPointer& gp) {
 		this->group = gp.group;
 		return *this;

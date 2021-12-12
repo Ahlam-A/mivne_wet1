@@ -220,7 +220,7 @@ static errorType OnInit(void** DS, const char* const command) {
 /***************************************************************************/
 static errorType OnAddGroup(void* DS, const char* const command) {
 	int groupID;
-	ValidateRead(sscanf(command, "%d", &groupID), 1, "AddGroup failed.\n");
+	ValidateRead(sscanf_s(command, "%d", &groupID), 1, "AddGroup failed.\n");
 	StatusType res = AddGroup(DS, groupID);
 
 	if (res != SUCCESS) {
@@ -241,7 +241,7 @@ static errorType OnAddPlayer(void* DS, const char* const command) {
 	int groupID;
 	int level;
 	ValidateRead(
-			sscanf(command, "%d %d %d", &playerID, &groupID, &level),
+			sscanf_s(command, "%d %d %d", &playerID, &groupID, &level),
 			3, "AddPlayer failed.\n");
 	StatusType res = AddPlayer(DS, playerID, groupID, level);
 
@@ -259,7 +259,7 @@ static errorType OnAddPlayer(void* DS, const char* const command) {
 /***************************************************************************/
 static errorType OnRemovePlayer(void* DS, const char* const command) {
 	int playerID;
-	ValidateRead(sscanf(command, "%d", &playerID), 1,
+	ValidateRead(sscanf_s(command, "%d", &playerID), 1,
 			"RemovePlayer failed.\n");
 	StatusType res = RemovePlayer(DS, playerID);
 	if (res != SUCCESS) {
@@ -277,7 +277,7 @@ static errorType OnRemovePlayer(void* DS, const char* const command) {
 static errorType OnReplaceGroup(void* DS, const char* const command) {
 	int groupID;
 	int replacementID;
-	ValidateRead(sscanf(command, "%d %d", &groupID, &replacementID), 2,
+	ValidateRead(sscanf_s(command, "%d %d", &groupID, &replacementID), 2,
 			"ReplaceGroup failed.\n");
 	StatusType res = ReplaceGroup(DS, groupID, replacementID);
 
@@ -296,7 +296,7 @@ static errorType OnReplaceGroup(void* DS, const char* const command) {
 static errorType OnIncreaseLevel(void* DS, const char* const command) {
 	int playerID;
 	int levelIncrease;
-	ValidateRead(sscanf(command, "%d %d", &playerID, &levelIncrease), 2,
+	ValidateRead(sscanf_s(command, "%d %d", &playerID, &levelIncrease), 2,
 			"IncreaseLevel failed.\n");
 	StatusType res = IncreaseLevel(DS, playerID, levelIncrease);
 
@@ -315,7 +315,7 @@ static errorType OnIncreaseLevel(void* DS, const char* const command) {
 /***************************************************************************/
 static errorType OnGetHighestLevel(void* DS, const char* const command) {
 	int groupID;
-	ValidateRead(sscanf(command, "%d", &groupID), 1, "GetHighestLevel failed.\n");
+	ValidateRead(sscanf_s(command, "%d", &groupID), 1, "GetHighestLevel failed.\n");
 	int playerID;
 	StatusType res = GetHighestLevel(DS, groupID, &playerID);
 
@@ -347,7 +347,7 @@ void PrintAll(int *playerIDs, int numOfPlayers) {
 
 static errorType OnGetAllPlayersByLevel(void* DS, const char* const command) {
 	int groupID;
-	ValidateRead(sscanf(command, "%d", &groupID), 1,
+	ValidateRead(sscanf_s(command, "%d", &groupID), 1,
 			"GetAllPlayersByLevel failed.\n");
 	int* playerIDs;
 	int numOfPlayers;
@@ -381,7 +381,7 @@ void PrintGroupsHighest(int *playerIDs, int numOfGroups) {
 
 static errorType OnGetGroupsHighestLevel(void* DS, const char* const command) {
 	int numOfGroups;
-	ValidateRead(sscanf(command, "%d", &numOfGroups), 1,
+	ValidateRead(sscanf_s(command, "%d", &numOfGroups), 1,
 			"GetGroupsHighestLevel failed.\n");
 	int* playerIDs;
 	StatusType res = GetGroupsHighestLevel(DS, numOfGroups, &playerIDs);
