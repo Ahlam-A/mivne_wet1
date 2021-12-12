@@ -250,48 +250,49 @@ StatusType PlayersManager::RemovePlayer(int PlayerID)
     return SUCCESS;
 }
 
-StatusType PlayersManager::ReplaceGroup(int GroupID, int ReplacementID) {
+StatusType PlayersManager::ReplaceGroup(int GroupID, int ReplacementID) 
+{
     if(GroupID <= 0 || ReplacementID <= 0 || GroupID == ReplacementID){
         return INVALID_INPUT;
     }
     Group* group1 = groupTree->findData(GroupID);
     Group* group2 = groupTree->findData(ReplacementID);
-    if(!group1 || !group2){
+    
+    if (!group1 || !group2) {
         return FAILURE;
     }
-    if(!group1->getSize()){
+    
+    if (group1->getSize() == 0) {
         groupTree->deleteNode(GroupID);
         return SUCCESS;
     }
-    int highest_level_player_id = group1->highest_player->player->getId();
-    int highest_level_id2, highest_level1, highest_level2;
-    highest_level1 = group1->highest_player->player->getLevel();
-    if(!group2->getSize()){
-        GroupPointer new_group_ptr = GroupPointer();
-        new_group_ptr.group = group2;
-        NonEmptyGroups->insertNode(&new_group_ptr, nullptr);
-    }else{
-        highest_level_id2 = group2->highest_player->player->getId();
-        highest_level2 = group2->highest_player->player->getLevel();
-        if(highest_level1 < highest_level2 || (highest_level1 == highest_level2 && highest_level_player_id > highest_level_id2)){
-            highest_level_player_id = highest_level_id2;
+    
+    if (group2->getSize() == 0) 
+    {
+        GroupPointer group2_ptr = GroupPointer();
+        group2_ptr.group = group2;
+
+        TreeResult res = NonEmptyGroups->insertNode(&group2_ptr, &group2->groupPointer);
+        if (res == TreeResult::OUT_OF_MEMORY) {
+            return ALLOCATION_ERROR;
         }
     }
-    AVLTree<PlayerPointer>* tmp = mergeTrees(group1->groupPlayers, group2->groupPlayers);
-    PlayerPointer** mergedArr = new PlayerPointer*[group1->getSize() + group2->getSize()];
-    tmp->inorder(tmp->getRoot(), mergedArr, group1->getSize() + group2->getSize());
-    for (int i = 0; i < group1->getSize() + group2->getSize(); ++i) {
+
+    AVLTree<PlayerPointer>* mergedTree = mergeTrees(group1->groupPlayers, group2->groupPlayers);
+    PlayerPointer** mergedArr = mergedTree->orderedArray();
+    for (int i = 0; i < mergedTree->getSize(); ++i) {
         mergedArr[i]->player->updateGroup(group2);
     }
     delete[] mergedArr;
-    delete group1->groupPlayers;
+
     delete group2->groupPlayers;
-    group2->groupPlayers = tmp;
-    group2->setSize(group1->getSize() + group2->getSize());
+    group2->groupPlayers = mergedTree;
+    group2->setSize(mergedTree->getSize());
+    group2->highest_player = group2->groupPlayers->getHighest();
+
+    NonEmptyGroups->deleteByPointer(group1->groupPointer);
     groupTree->deleteNode(GroupID);
-    NonEmptyGroups->deleteNode(GroupID);
-    PlayerPointer new_highest_level_player = PlayerPointer();
-    new_highest_level_player.player = playersById->findData(highest_level_player_id);
+
     return SUCCESS;
 }
 
@@ -325,7 +326,7 @@ StatusType PlayersManager::GetHighestLevel(int GroupID, int *PlayerID) {
     if(!group){
         return FAILURE;
     }
-    if(!group->getSize()){
+    if(group->getSize() == 0){
         *PlayerID = -1;
         return SUCCESS;
     }
@@ -342,7 +343,7 @@ static int* getPlayersByLevel(int numOfPlayers, AVLTree<PlayerPointer>* playersT
     int i = numOfPlayers - 1;
     while (i >= 0) {
         players[i] = player_pointers[i]->player->getId();
-        i++;
+        i--;
     }
     delete[] player_pointers;
 
@@ -386,18 +387,22 @@ StatusType PlayersManager::GetGroupsHighestLevel(int numOfGroups, int **Players)
     if(numOfGroups > NonEmptyGroups->getSize()){
         return FAILURE;
     }
-    GroupPointer** arr = new GroupPointer*[numOfGroups];
-    if(!arr){
+    try 
+    {
+        GroupPointer** arr = new GroupPointer*[numOfGroups];
+    
+        int* highestPlayers = new int[numOfGroups];
+
+        NonEmptyGroups->inorder(NonEmptyGroups->getRoot(), arr, numOfGroups);
+        for (int i = 0; i < numOfGroups; ++i) {
+            highestPlayers[i] = arr[i]->group->highest_player->player->getId();
+        }
+
+        *Players = highestPlayers;
+    }
+    catch (bad_alloc&) {
         return ALLOCATION_ERROR;
     }
-    int* highestPlayers = new int[numOfGroups];
-
-    NonEmptyGroups->inorder(NonEmptyGroups->getRoot(), arr, numOfGroups);
-    for (int i = 0; i < numOfGroups; ++i) {
-        highestPlayers[i] = arr[i]->group->highest_player->player->getId();
-    }
-
-    *Players = highestPlayers;
-
+    
     return SUCCESS;
 }

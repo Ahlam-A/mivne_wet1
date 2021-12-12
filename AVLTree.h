@@ -352,7 +352,7 @@ inline AVLTree<Data>::AVLTree(AVLNode<Data>* r, int size)
 {
 	this->root = r;
 	this->nodes_count = size;
-	
+	this->updateHighest();
 }
 
 template<typename Data>
