@@ -52,7 +52,7 @@ public:
 
 	const TreeResult insertNode(Data* data, AVLNode<Data>** inserted);
     const TreeResult deleteNode(int id);
-	const TreeResult deleteByPointer(AVLNode<Data>* node);
+	const TreeResult deleteByPointer(AVLNode<Data>* node, AVLNode<Data>** swapped);
     const int getSize();
 	void updateHighest();
     Data* getHighest() { 
@@ -428,17 +428,19 @@ inline const TreeResult AVLTree<Data>::deleteNode(int id)
 	if (!found)
 		return TreeResult::NODE_DOESNT_EXISTS;
 	
-	return deleteByPointer(node);
+	return deleteByPointer(node, nullptr);
 }
 
 template<typename Data>
-inline const TreeResult AVLTree<Data>::deleteByPointer(AVLNode<Data>* node)
+inline const TreeResult AVLTree<Data>::deleteByPointer(AVLNode<Data>* node, AVLNode<Data>** swapped)
 {
 	auto* parent = node->getParent();
 
 	switch (node->getType())
 	{
 	case LEAF:
+		if (swapped) *swapped = nullptr;
+
 		if (this->root == node)
 		{
 			this->root = NULL;
@@ -448,6 +450,8 @@ inline const TreeResult AVLTree<Data>::deleteByPointer(AVLNode<Data>* node)
 			delete_leaf_or_onechild_node(node);
 		break;
 	case HAS_LEFT_CHILD:
+		if (swapped) *swapped = nullptr;
+
 		if (this->root == node)
 		{
 			this->root = node->getLChild();
@@ -458,6 +462,8 @@ inline const TreeResult AVLTree<Data>::deleteByPointer(AVLNode<Data>* node)
 			delete_leaf_or_onechild_node(node);
 		break;
 	case HAS_RIGHT_CHILD:
+		if (swapped) *swapped = nullptr;
+
 		if (this->root == node)
 		{
 			this->root = node->getRChild();
@@ -470,6 +476,7 @@ inline const TreeResult AVLTree<Data>::deleteByPointer(AVLNode<Data>* node)
 	case HAS_CHILDREN:
 		AVLNode<Data>* replacement = get_replacement(node);
 		swap_nodes(node, replacement);
+		if (swapped) *swapped = node;
 		parent = replacement->getParent();
 		delete_leaf_or_onechild_node(replacement);
 		break;

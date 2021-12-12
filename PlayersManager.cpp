@@ -230,17 +230,30 @@ StatusType PlayersManager::RemovePlayer(int PlayerID)
     if (player == NULL) return FAILURE;
 
     // delete player from playersByLevel
-    playersByLevel->deleteByPointer(player->player_level);
+    AVLNode<PlayerPointer>* level_swapped;
+    playersByLevel->deleteByPointer(player->player_level, &level_swapped);
+    if (level_swapped) {
+        level_swapped->getData()->player->player_level = level_swapped;
+    }
 
     // delete player from groupPlayers
     Group* playerGroup = player->getGroup();
-    playerGroup->groupPlayers->deleteByPointer(player->group_player);
+
+    AVLNode<PlayerPointer>* group_swapped;
+    playerGroup->groupPlayers->deleteByPointer(player->group_player, &group_swapped);
+    if (group_swapped) {
+        group_swapped->getData()->player->group_player = group_swapped;
+    }
     playerGroup->highest_player = playerGroup->groupPlayers->getHighest();
     playerGroup->setSize(playerGroup->groupPlayers->getSize());
 
     // if player's group has no more players, delete the group from NonEmptyGroups
     if (playerGroup->getSize() == 0) {
-        NonEmptyGroups->deleteByPointer(playerGroup->groupPointer);
+        AVLNode<GroupPointer>* group_swapped;
+        NonEmptyGroups->deleteByPointer(playerGroup->groupPointer, &group_swapped);
+        if (group_swapped) {
+            group_swapped->getData()->group->groupPointer = group_swapped;
+        }
         playerGroup->groupPointer = nullptr;
     }
 
@@ -289,8 +302,12 @@ StatusType PlayersManager::ReplaceGroup(int GroupID, int ReplacementID)
     group2->groupPlayers = mergedTree;
     group2->setSize(mergedTree->getSize());
     group2->highest_player = group2->groupPlayers->getHighest();
-
-    NonEmptyGroups->deleteByPointer(group1->groupPointer);
+    
+    AVLNode<GroupPointer>* group_swapped;
+    NonEmptyGroups->deleteByPointer(group1->groupPointer, &group_swapped);
+    if (group_swapped) {
+        group_swapped->getData()->group->groupPointer = group_swapped;
+    }
     groupTree->deleteNode(GroupID);
 
     return SUCCESS;
