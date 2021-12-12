@@ -167,16 +167,25 @@ StatusType PlayersManager::AddGroup(int GroupID)
     return SUCCESS;
 }
 
-static StatusType addPlayerToGroup(Player* new_player, Group* group, AVLTree<GroupPointer>* NonEmptyGroups) 
-{
+static StatusType addPlayerToGroup(Player* new_player, Group* group, 
+    AVLTree<Player>* playersById, AVLTree<PlayerPointer>* playersByLevel, AVLTree<GroupPointer>* NonEmptyGroups) 
+{    
     PlayerPointer new_player_ptr = PlayerPointer();
     new_player_ptr.player = new_player;
-    
+
+    TreeResult res = playersByLevel->insertNode(&new_player_ptr, &new_player->player_level);
+    if (res == TreeResult::OUT_OF_MEMORY) {
+        return ALLOCATION_ERROR;
+    }
+
     TreeResult res1 = group->groupPlayers->insertNode(&new_player_ptr, &new_player->group_player);
     if (res1 == TreeResult::OUT_OF_MEMORY) {
         return ALLOCATION_ERROR;
     }
-    if (group->getSize() == 0) {
+    group->highest_player = group->groupPlayers->getHighest();
+    group->increaseSize();
+
+    if (group->getSize() == 1) {
         GroupPointer new_nonEmptyGroup = GroupPointer();
         new_nonEmptyGroup.group = group;
         
@@ -185,13 +194,21 @@ static StatusType addPlayerToGroup(Player* new_player, Group* group, AVLTree<Gro
             return ALLOCATION_ERROR;
         }
     }
-    group->highest_player = group->groupPlayers->getHighest();
-    group->increaseSize();
+
+    AVLNode<Player>* player_node;
+    TreeResult res3 = playersById->insertNode(new_player, &player_node);
+    if (res3 == TreeResult::OUT_OF_MEMORY) {
+        return ALLOCATION_ERROR;
+    }
+
+    new_player->player_level->getData()->player = player_node->getData();
+    new_player->group_player->getData()->player = player_node->getData();
 
     return SUCCESS;
 }
 
-StatusType PlayersManager::AddPlayer(int PlayerID, int GroupID, int Level) {
+StatusType PlayersManager::AddPlayer(int PlayerID, int GroupID, int Level) 
+{
     if(PlayerID <= 0 || GroupID <= 0 || Level < 0){
         return INVALID_INPUT;
     }
@@ -201,28 +218,8 @@ StatusType PlayersManager::AddPlayer(int PlayerID, int GroupID, int Level) {
     if (playersById->findData(PlayerID)) return FAILURE;
 
     Player new_player = Player(PlayerID, Level, group);
-
-    PlayerPointer player_ptr = PlayerPointer();
-    player_ptr.player = &new_player;
-
-    TreeResult res1 = playersByLevel->insertNode(&player_ptr, &new_player.player_level);
-    if (res1 == TreeResult::OUT_OF_MEMORY) {
-        return ALLOCATION_ERROR;
-    }
-
-    if (addPlayerToGroup(&new_player, group, NonEmptyGroups) == ALLOCATION_ERROR)
-        return ALLOCATION_ERROR;
-
-    AVLNode<Player>* player_node;
-    TreeResult res2 = playersById->insertNode(&new_player, &player_node);
-    if(res2 == TreeResult::OUT_OF_MEMORY){
-        return ALLOCATION_ERROR;
-    }
-
-    new_player.player_level->getData()->player = player_node->getData();
-    new_player.group_player->getData()->player = player_node->getData();
-
-    return SUCCESS;
+    
+    return addPlayerToGroup(&new_player, group, playersById, playersByLevel, NonEmptyGroups);
 }
 
 StatusType PlayersManager::RemovePlayer(int PlayerID)
@@ -239,9 +236,10 @@ StatusType PlayersManager::RemovePlayer(int PlayerID)
     Group* playerGroup = player->getGroup();
     playerGroup->groupPlayers->deleteByPointer(player->group_player);
     playerGroup->highest_player = playerGroup->groupPlayers->getHighest();
+    playerGroup->setSize(playerGroup->groupPlayers->getSize());
 
     // if player's group has no more players, delete the group from NonEmptyGroups
-    if (playerGroup->groupPlayers->getSize() == 0) {
+    if (playerGroup->getSize() == 0) {
         NonEmptyGroups->deleteByPointer(playerGroup->groupPointer);
         playerGroup->groupPointer = nullptr;
     }
@@ -311,7 +309,7 @@ StatusType PlayersManager::IncreaseLevel(int PlayerID, int LevelIncrease)
 
     RemovePlayer(PlayerID);
     
-    return addPlayerToGroup(&updated_player, player_group, NonEmptyGroups);
+    return addPlayerToGroup(&updated_player, player_group, playersById, playersByLevel, NonEmptyGroups);
 
 }
 
