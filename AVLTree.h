@@ -62,7 +62,7 @@ public:
     AVLNode<Data>* getRoot() { return root; }
 
 	int inorder(AVLNode<Data>* p, Data** arr, int numOfNodes, int i = 0);
-	Data** orderedArray();
+	Data** orderedArray(int size);
 
 	//int treeHeight() { return root->getHeight(); }
     
@@ -513,19 +513,18 @@ inline void AVLTree<Data>::updateHighest()
 template<typename Data>
 int AVLTree<Data>::inorder(AVLNode<Data>* p, Data** arr, int numOfNodes, int i)
 {
-	if (p == NULL || !numOfNodes) return i;
+	if (p == NULL) return i;
 
 	i = AVLTree<Data>::inorder(p->getLChild(), arr, numOfNodes, i);
-    --numOfNodes;
-	arr[i++] = (p->getData());
+	if (i == numOfNodes) return i;
+	arr[i++] = p->getData();
 	i = AVLTree<Data>::inorder(p->getRChild(), arr, numOfNodes, i);
 
 	return i;
 }
 
 template<typename Data>
-Data** AVLTree<Data>::orderedArray() {
-	const int size = this->getSize();
+Data** AVLTree<Data>::orderedArray(int size) {
 	Data** arr = new Data*[size];
 	this->inorder(this->root, arr, size);
 	return arr;
