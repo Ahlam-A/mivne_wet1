@@ -357,7 +357,7 @@ StatusType PlayersManager::GetHighestLevel(int GroupID, int *PlayerID) {
 
 static int* getPlayersByLevel(int numOfPlayers, AVLTree<PlayerPointer>* playersTree)
 {
-    int* players = new int[numOfPlayers];
+    int* players = (int*)malloc(numOfPlayers * sizeof(int));
 
     PlayerPointer** player_pointers = playersTree->orderedArray(numOfPlayers);
 
@@ -414,7 +414,7 @@ StatusType PlayersManager::GetGroupsHighestLevel(int numOfGroups, int **Players)
     {
         GroupPointer** arr = NonEmptyGroups->orderedArray(numOfGroups);
     
-        int* highestPlayers = new int[numOfGroups];
+        int* highestPlayers = (int*)malloc(numOfGroups * sizeof(int));
 
         for (int i = 0; i < numOfGroups; i++) {
             highestPlayers[i] = arr[i]->group->highest_player->player->getId();
