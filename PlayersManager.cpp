@@ -70,8 +70,8 @@ static AVLTree<PlayerPointer>* mergeTrees(AVLTree<PlayerPointer>* tree1, AVLTree
 
 	if (size1 > 0 && size2 > 0)
 	{
-		PlayerPointer** arr1 = tree1->orderedArray();
-		PlayerPointer** arr2 = tree2->orderedArray();
+		PlayerPointer** arr1 = tree1->orderedArray(size1);
+		PlayerPointer** arr2 = tree2->orderedArray(size2);
 		PlayerPointer** mergedArr = new PlayerPointer*[size1 + size2];
 		int mergeSize = mergeArrays(arr1, size1, arr2, size2, mergedArr);
 		AVLTree<PlayerPointer>* mergedTree = arrayToTree(mergedArr, mergeSize);
@@ -85,7 +85,7 @@ static AVLTree<PlayerPointer>* mergeTrees(AVLTree<PlayerPointer>* tree1, AVLTree
 
 	else if (size1 > 0)
 	{
-		PlayerPointer** arr = tree1->orderedArray();
+		PlayerPointer** arr = tree1->orderedArray(size1);
 		AVLTree<PlayerPointer>* tree = arrayToTree(arr, tree1->getSize());
 
 		delete[] arr;
@@ -94,7 +94,7 @@ static AVLTree<PlayerPointer>* mergeTrees(AVLTree<PlayerPointer>* tree1, AVLTree
 
 	else if (size2 > 0)
 	{
-		PlayerPointer** arr = tree2->orderedArray();
+		PlayerPointer** arr = tree2->orderedArray(size2);
 		AVLTree<PlayerPointer>* tree = arrayToTree(arr, tree2->getSize());
 
 		delete[] arr;
@@ -120,7 +120,7 @@ Group& Group::operator=(const Group& g)
     }
 
     if (g.groupPlayers->getSize() > 0) {
-        PlayerPointer** playerArr = g.groupPlayers->orderedArray();
+        PlayerPointer** playerArr = g.groupPlayers->orderedArray(g.groupPlayers->getSize());
         this->groupPlayers = arrayToTree(playerArr, g.groupPlayers->getSize());
         delete[] playerArr;
         groupPlayers->updateHighest();
@@ -292,7 +292,7 @@ StatusType PlayersManager::ReplaceGroup(int GroupID, int ReplacementID)
     }
 
     AVLTree<PlayerPointer>* mergedTree = mergeTrees(group1->groupPlayers, group2->groupPlayers);
-    PlayerPointer** mergedArr = mergedTree->orderedArray();
+    PlayerPointer** mergedArr = mergedTree->orderedArray(mergedTree->getSize());
     for (int i = 0; i < mergedTree->getSize(); ++i) {
         mergedArr[i]->player->updateGroup(group2);
     }
@@ -359,7 +359,7 @@ static int* getPlayersByLevel(int numOfPlayers, AVLTree<PlayerPointer>* playersT
 {
     int* players = new int[numOfPlayers];
 
-    PlayerPointer** player_pointers = playersTree->orderedArray();
+    PlayerPointer** player_pointers = playersTree->orderedArray(numOfPlayers);
 
     int i = numOfPlayers - 1;
     int j = 0;
@@ -412,15 +412,15 @@ StatusType PlayersManager::GetGroupsHighestLevel(int numOfGroups, int **Players)
     }
     try 
     {
-        GroupPointer** arr = new GroupPointer*[numOfGroups];
+        GroupPointer** arr = NonEmptyGroups->orderedArray(numOfGroups);
     
         int* highestPlayers = new int[numOfGroups];
 
-        NonEmptyGroups->inorder(NonEmptyGroups->getRoot(), arr, numOfGroups);
         for (int i = 0; i < numOfGroups; i++) {
             highestPlayers[i] = arr[i]->group->highest_player->player->getId();
         }
-
+        delete[] arr;
+        
         *Players = highestPlayers;
     }
     catch (bad_alloc&) {

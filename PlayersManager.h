@@ -99,11 +99,11 @@ public:
 		groupPlayers = new AVLTree<PlayerPointer>();
 		groupPointer = nullptr;
 	}
-	Group(int id, int size, AVLTree<PlayerPointer>* players) 
-		: id(id), size(size), groupPlayers(players) {
-		highest_player = players->getHighest();
-		groupPointer = nullptr;
-	}
+	//Group(int id, int size, AVLTree<PlayerPointer>* players) 
+	//	: id(id), size(size), groupPlayers(players) {
+	//	highest_player = players->getHighest();
+	//	groupPointer = nullptr;
+	//}
 	~Group() { 
 		if (this->groupPlayers)
 			delete groupPlayers;
@@ -124,7 +124,6 @@ public:
 	void increaseSize(){ size++; }
 	void setSize(int new_size){ size = new_size; }
 };
-
 
 class GroupPointer
 {
